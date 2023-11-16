@@ -9,3 +9,6 @@ This repository contains the code and documentation for an exploratory data anal
 - Investigation of factors influencing player performance, such as time controls and chess openings.
 - Statistical analysis and data visualization to identify trends and patterns.
 
+## Dataset used
+
+https://www.kaggle.com/datasets/mysarahmadbhat/online-chess-games/data 
