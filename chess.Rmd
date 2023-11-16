@@ -1,0 +1,234 @@
+---
+title: "ONLINE CHESS GAMES"
+subtitle: "VISUALIZATION - PROJECT 1"
+author: "Alena Maria Thomas, MDS202303"
+date: "30 September 2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# INTRODUCTION
+
+Online chess games have revolutionized the timeless game of strategy, bringing it to a global audience. Players of all skill levels can now engage in exhilarating matches with opponents of varying skills, anytime and anywhere. These games offer accessibility, convenience, and a wealth of learning resources, making chess more approachable for newcomers and a dynamic challenge for seasoned players. Whether you are seeking a quick match or a deep, contemplative battle, online chess provides a rich and diverse gaming experience, uniting enthusiasts and sharpening minds across borders.
+
+Through the analysis of a comprehensive dataset encompassing player ratings, game outcomes, opening moves, and various game attributes, this data analysis project seeks to uncover patterns, and insights within the realm of online chess. By exploring factors influencing player performance such as time controls and chess openings, this project aims to shed light on the strategies employed by players to achieve victory or secure draws. 
+
+# DATA DESCRIPTION 
+
+Link to the dataset used: <https://www.kaggle.com/datasets/mysarahmadbhat/online-chess-games/data>
+
+Some variables of interest are:
+
+* `turns` (Integer) :The total number of turns taken until the games ends
+* `victory_status` (Character): Indicates the status of the game at the end. Possible values are `Draw`, `Mate`, `Out of Time`, and `Resign`.
+* `winner` (Character): Indicates the winner of the game. Possible values are `White`, `Black` and `Draw`.
+* `time_increment` (Character): The amount of time added to the clock after each move is made. For example in a 15+10 game, you start with 15 minutes and get 10 seconds added to your clock after each move.
+* `white_id` (Character): A unique id that identifies the player playing white. The id can consist of letters, numbers, underscores and dashes.
+* `white_rating` (Integer): The chess rating of the player playing white. The chess rating is a number that indicates, based on the past performance, how good the you are  at playing chess.
+* `black_id` (Character): A unique id that identifies the player playing white. The id can consist of letters, numbers, underscores and dashes.
+* `black_rating` (Integer): The chess rating of the player playing black.
+* `opening_shortname` (Character): The short name of the opening strategy equipped in the game.
+
+```{r library_and_dataset, include = FALSE}
+library(tidyverse)
+df = read.csv("chess_games.csv")
+```
+
+\newpage
+
+# EXPLANATORY DATA ANALYSIS (EDA)
+
+Let us explore the dataset by finding answers some questions with the help of visualizations.
+
+## What percentage of games were won by white? How many ended in a draw?
+
+```{r winner_analysis, echo = FALSE, out.width = "75%", fig.align = "center"}
+ggplot(df, aes( x=winner, fill=winner )) + 
+  geom_bar(width = .75) + 
+  ylim(0, 10500) + 
+  scale_fill_manual(values = c("white","black","gray"), limits = c("White","Black","Draw")) +
+  scale_x_discrete(limits = c("White", "Black", "Draw")) +
+  labs(
+    y = "Number of games won", 
+    title = "Distribution of games won by each color"
+  ) +
+  geom_text(
+    aes(label = after_stat(count)), stat = "count", 
+    vjust = -.5, 
+    color = "#1A5276"
+  ) +
+ theme(panel.background = element_rect(fill = "#EBF5FB"))
+```
+
+```{r piechart_winners, echo = FALSE, out.width = "65%"}
+pie(
+  table(df$winner), 
+  col=c("#273746", "gray", "white"), 
+  main="Piechart of winners", 
+  labels=paste(round(prop.table(table(df$winner)),3) ,"%" )
+) 
+legend(
+  "right",
+  legend=levels(as.factor(df$winner)), 
+  fill=c("#273746", "gray", "white"), 
+  title="Winners", 
+  box.lty=0
+)
+```
+
+OBSERVATION: 
+
+* From the above two graphs, we can observe that white appears to win more number of times as black, though the difference is quite negligible (0.045%).
+
+* Approximately 0.05% of matches ended  in draw.
+
+\newpage
+
+## Which opening move was most frequently used?
+
+Since there are large number of different opening moves that have been recorded, we observe the frequency of the 5 most commonly used opening moves.
+
+```{r opening_move_analysis, echo = FALSE, out.width="85%"}
+freq_opening_moves = df %>% count(opening_shortname) %>% arrange(desc(n)) %>% head(5) 
+
+df_opening_moves = df %>% filter(opening_shortname %in% freq_opening_moves$opening_shortname)
+
+ggplot(df_opening_moves, aes( x=opening_shortname )) + 
+  geom_bar(width = .75, fill = "#F9E79F") + 
+  coord_flip() + 
+  scale_x_discrete(limits = c("King's Pawn Game","Italian Game", "Queen's Pawn Game", "French Defense", "Sicilian Defense")) +
+  scale_y_continuous(breaks = seq(0, 3000, 500)) +
+  labs(
+    x = "Opening Moves used", 
+    y = "Number of games in which they were used",
+    title = "Distribution of 5 most common opening moves used"
+  ) +
+  geom_text(
+    aes(label = after_stat(count)), 
+    stat = "count", 
+    hjust = 1.25, 
+    color = "#1A5276", 
+    size = 3.5
+  ) +
+  theme(panel.background = element_rect(fill = "#EBF5FB"))
+```
+
+OBSERVATION: The Sicilian Defense is the most commonly used opening strategy, which is used 2632 / `r length(df$opening_shortname)` = `r round(2632/length(df$opening_shortname),3)`% of the times. 
+
+\newpage
+
+## Distribution of number of turns made in a game
+
+We can use the `summary()` function to get information about the distribution of the variable __turns__.
+
+```{r summary_turns, echo = FALSE}
+summary(df$turns)
+```
+
+This can be visualized with a histogram as follows:
+
+```{r no_turns_analysis, echo = FALSE, warning = FALSE, out.width = "75%"}
+ggplot(df, aes(x=turns)) +
+  geom_histogram(fill = "#F9E79F", alpha = .75, colour = "gray") +
+  scale_x_continuous(breaks = seq(0, 400, 50)) +
+  labs(
+    x = "No. of turns",
+    y = "Density", 
+    title = "Distribution of number of turns made in a game"
+  ) +
+  theme(panel.background = element_rect(fill = "#EBF5FB"))
+```
+
+OBSERVE: We can observe from the graph the number of turns taken to end a game follows right-skewed distribution, which the mean value approximating 60.
+
+\newpage
+
+## Distribution of the victory status of the games
+
+```{r victory_status_analysis, echo = FALSE, out.width = "85%"}
+ggplot(df, aes( x=victory_status)) + 
+  geom_bar(width = .75, fill = "#F9E79F") + 
+  ylim(0, 13000) +
+  scale_x_discrete(limits = c("Resign", "Mate", "Out of Time", "Draw")) +
+  scale_y_continuous(breaks = seq(0, 12000, 2000)) +
+  labs(
+    x = "Victory status of game",
+    y = "Frequency", 
+    title = "Distribution of victory status"
+  ) +
+  geom_text(
+    aes(label = after_stat(count)), 
+    stat = "count", 
+    vjust = 1.3, 
+    color = "#1A5276", 
+    size = 3.2) +
+  theme(panel.background = element_rect(fill = "#EBF5FB"))
+```
+
+OBSERVATION: We can observe that the majority of the games end by one of the players resigning the game, which happens approximately 11147 / `r length(df$victory_status)` = `r round(2632/length(df$victory_status),3)`% of the times. 
+
+\newpage
+
+## What percentage of games are won by the player with the higher rating? Does this vary by piece color?
+
+```{r higher_rating_winner, echo = FALSE, out.width = "75%", warning = FALSE}
+df = df %>% mutate(higher_rating_win = ifelse(((winner == "White" & white_rating > black_rating) | (winner == "Black" & white_rating < black_rating)), "True", "False"))
+
+ggplot(df, aes( x = higher_rating_win, fill = higher_rating_win )) +
+  geom_bar(width = .75) + 
+  scale_fill_manual(values = c("#CD6155", "#16A085")) +
+  ylim(0, 13000) +
+  scale_y_continuous(breaks = seq(0,13000,2000)) + 
+  labs(
+    x = "Whether the higher rated player wins", 
+    y = "Number of games",
+    title = "Distribution of games based on the ratings of the players"
+  ) +
+  geom_text(
+    aes(label = after_stat(count)), 
+    stat = "count", 
+    vjust = 1.5, 
+    color = "white", 
+    size = 3.5
+  ) +
+  guides(fill = FALSE) + 
+  theme(panel.background = element_rect(fill = "#EBF5FB"))
+```
+
+OBSERVATION: We can observe that a lot more games are won by players with higher rating, approximately 12352 / `r length(df$game_id)` = `r round(2632/length(df$game_id),3)`% of the times.  
+
+Now, let us explore if this distribution varies with the colour of the player's pieces.
+
+```{r higher_rating_by_colour, echo = FALSE, out.width = "75%"}
+ggplot(df, aes( x = higher_rating_win, fill = winner )) +
+  geom_bar(position = "fill", width = .75, colour = "gray") + 
+  scale_fill_manual(values = c("white", "black", "gray"), limits = c("White", "Black", "Draw")) +
+  labs(
+    x = "Whether the higher rated player wins", 
+    y = "Proportion",
+    title = ""
+  ) +
+  theme(panel.background = element_rect(fill = "#EBF5FB"))
+
+```
+
+OBSERVATION:
+
+* In games where the higher rated player wins, it is observed that the number of times white wins is very close to the number of times black wins.
+* In games where the lower rated players wins, we observe the same thing.
+* Hence, we can conclude that the event that the higher rated player wins does not depend on the colour of the pieces of the higher rated player.
+
+## SUMMARY
+
+* White appears to win more number of times as black, though the difference is quite negligible (0.045%).
+
+* The Sicilian Defense is the most commonly used opening strategy, which is used 0.13% of the times.  
+
+* The graph the number of turns taken to end a game follows right-skewed distribution, which the mean value approximating 60. 
+
+* We can observe that the majority of the games end by one of the players resigning the game, which happens approximately 0.55% of the times.
+
+* We can observe that a lot more games are won by players with higher rating, approximately 0.61% of the times.
