@@ -12,3 +12,11 @@ This repository contains the code and documentation for an exploratory data anal
 ## Dataset used
 
 https://www.kaggle.com/datasets/mysarahmadbhat/online-chess-games/data 
+
+## Link to the Shiny App
+
+https://alenamariathomas.shinyapps.io/VisualizationProject/
+
+## Link to Youtube video explaining the Shiny app
+
+https://www.youtube.com/watch?v=L1EY74mtdQY
